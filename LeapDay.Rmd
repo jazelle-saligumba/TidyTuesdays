@@ -1,0 +1,73 @@
+---
+title: "Untitled"
+output: html_document
+date: "2024-02-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(babynames)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+events <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-02-27/events.csv')
+births <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-02-27/births.csv')
+deaths <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-02-27/deaths.csv')
+```
+
+```{r}
+births <- births |>
+  separate(person, c("Fname", "Lname"))
+```
+
+
+
+```{r}
+leap_names <- births |> 
+  group_by(Fname) |> 
+  summarize(count = n()) |> 
+  filter(count >= 2)
+
+leap_names
+
+
+#leap_births <- babynames |> 
+  #filter(year > 1920) |> 
+  #filter(name %in% leap_names$Fname) |> 
+  #group_by(name, year) |> 
+  #mutate(diff = n - log(n), 
+  
+  
+```
+
+```{r}
+leap_births |> 
+  ggplot(aes(x =year, y =n)) +
+  geom_line(aes(color = name, lty = sex)) +
+  geom_point(data = filter(births, Fname %in% leap_names%Fname),
+             aes(color = Fname, x = year_birth), y = 75000, size= 5)+
+  xlim()
+  
+```
+

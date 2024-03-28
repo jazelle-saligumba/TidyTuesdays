@@ -1,0 +1,73 @@
+---
+title: "marchmadness tt 3:26"
+output: html_document
+date: "2024-03-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(praise)
+team_results <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-03-26/team-results.csv')
+public_picks <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-03-26/public-picks.csv')
+
+```
+
+## R Markdown
+
+```{r}
+View(team_results)
+View(public_picks)
+```
+
+## The Data
+
+```{r}
+seed_data <- team_results |> 
+  mutate(expectations = ifelse(PAKE >= PASE, "underseeded", "overseeded")) |> #mutate creates a new variable from a data set, if PAKE>= PASE then == "underseeded', else it is 'overseeded') 
+  mutate(rank_diff = PAKE-PASE) |> 
+  #filter(abs(PAKE - PASE) > 1) |> #keeps whichever rows are true, finds the big differences 
+  #filter(TEAM != "Kansas") |> # take out kansas since its an outlier
+  mutate(expected_groups = case_when( #similar to if else but with more cases
+    PAKE - PASE < -3 ~ "way_under",
+    PAKE - PASE < -2 ~ "mid_under",
+    PAKE - PASE < -1 ~ "little_under",
+    PAKE - PASE < 0 ~ "under",
+    PAKE - PASE < 1 ~ "over",
+    PAKE - PASE < 2 ~ "little_over",
+    PAKE - PASE < 3 ~ "mid_over",
+    TRUE ~ "way_over")
+    ) |> 
+  mutate(expected_groups = factor(expected_groups, levels = c("way_under", "mid_under", "little_under", "under", "over", "little_over", "mid_over", "way_over")))
+
+seed_data |> 
+  ggplot(aes(x = PAKE, y = PASE))+
+  geom_point(aes(color= expected_groups))+
+  geom_abline(slope=1, intercept =0) +
+  labs(x = "Komputer ranking", y= "Seed ranking")+
+  scale_color_manual(values = c("red", "orange", "yellow", "greenyellow", "green", "blue", "purple", "pink"))+
+  ggrepel::geom_label_repel(data = filter(seed_data, abs(PAKE-PASE) > 1.5), mapping = aes(label=TEAM)) #+ # labels of team on each point, changed data to be filtered, now only labels with the more extreme data 
+  #scale_color_gradient2(low = "blue", mid = "darkgray", high = "red") # color gradient before manually making case_when
+```
+## Spider Plots 
+```{r}
+library(ggradar)
+#just the data
+team_results |> 
+  mutate(F4PERCENT = parse_number(F4PERCENT)) |> 
+  select(TEAM, PAKE, PASE, GAMES, W, R64, F4PERCENT) |> 
+  mutate(across(PAKE:F4PERCENT, scale)) |> #z scores
+  filter(TEAM %in% c("Florida", "Houston", "Butler", "Florida Atlantic", "Saint Peter's", "Detroit", "Kansas"))  
+
+# the visual 
+team_results |> 
+  mutate(F4PERCENT = parse_number(F4PERCENT)) |> 
+  select(TEAM, PAKE, PASE, GAMES, W, R64, F4PERCENT) |> 
+  mutate(across(PAKE:F4PERCENT, scale)) |> #z scores
+  filter(TEAM %in% c("Florida", "Houston", "Butler", "Florida Atlantic", "Saint Peter's", "Detroit", "Kansas")) |> 
+ggradar(values.radar = c("-2", "0", "2"), grid.min = -4, grid.mid = 0, grid.max = 4)
+```
+```{r}
+praise()
+```
+

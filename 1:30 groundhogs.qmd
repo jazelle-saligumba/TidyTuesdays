@@ -1,0 +1,62 @@
+---
+title: "Untitled"
+format: html
+---
+
+## Quarto
+
+
+```{r}
+groundhogs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-01-30/groundhogs.csv')
+predictions <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-01-30/predictions.csv')
+
+```
+```{r}
+predictions |>
+  filter(id<= 6) |>
+  filter(year > 1900) |>
+  mutate(shadow_num = ifelse(shadow == TRUE, 1, 0 )) |>
+  ggplot(aes(x = year, y = shadow_num, color = as.factor(id))) + #as.factor changes to mult. colors 
+  geom_jitter(width=0, height= 0.1) + 
+  facet_wrap(~id)
+```
+
+```{r}
+predictions |>
+  #filter(id <= 10) |>
+  drop_na(shadow) |>
+  group_by(id) |>
+  summarize(prop_true = mean(shadow),
+            num_pred = n()) |> #na.rm removes missing n/a to run the data, shadow is a binary
+  ggplot(aes(x = num_pred, y = prop_true)) + # what proportion of time does he see his shadow
+  geom_point(aes(size = num_pred)) #aes takes column of data set and maps it to plot, if only 'size = 10', that doesnt need to be in aes 
+
+```
+
+```{r}
+location <- predictions |>
+  #filter(id <= 10) |>
+  drop_na(shadow) |>
+  group_by(id) |>
+  summarize(prop_true = mean(shadow),
+            num_pred = n()) |>
+  mutate(half_pred = ifelse(prop_true >=0.5, TRUE, FALSE)) |>
+  full_join(groundhogs, by = "id") |> 
+  mutate(groundhog = case_when(
+    type == "Groundhog" ~ "groundhog", # if type = Groundhog (exactly), set it to "groundhog"
+    grepl("groundhog", type, ignore.case = TRUE) ~ "groundhog type", # if there is 'groundhog' anywhere, ignore all exacts, set it to "groundhog type"
+    TRUE ~ "not groundhog"))
+```
+
+```{r}
+states <- map_data("state")
+
+
+ggplot(states) +
+  geom_polygon(fill= "white", colour = "black", aes(long, lat, group=group)) +
+  geom_point(data = location, aes(x = longitude, y = latitude, color = groundhog, size = num_pred))
+```
+
+
+```
+
