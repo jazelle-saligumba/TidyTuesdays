@@ -1,0 +1,182 @@
+---
+title: "R Notebook"
+output: html_notebook
+execute:
+  warning: false
+  message: false
+---
+```{r}
+library(ggplot2)
+library(ggmosaic)
+library(tidyverse)
+library(rpart.plot)
+```
+
+```{r}
+monster_movie_genres <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-10-29/monster_movie_genres.csv')
+monster_movies <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-10-29/monster_movies.csv') |> 
+  separate_rows(genres, sep = ",") |> 
+  mutate(value = 1) |>   # Create a value column to use for pivoting
+  pivot_wider(names_from = genres, values_from = value, values_fill = 0)
+```
+
+# change font later to spooky
+
+```{r}
+plot_data <- monster_movies |>
+    mutate(title_type = str_to_title(title_type)) |> 
+    mutate(decade = floor(year / 10) * 10) |> 
+    filter(decade >= 1960) |> 
+    drop_na(title_type, decade) |>
+    count(title_type, decade) 
+
+p <- plot_data |>
+  ggplot() +
+  geom_mosaic(aes(weight = n, x = product(decade), fill = title_type)) +
+  theme_void() +
+  labs(title = "Proportion of titles in each category per year") +
+  theme(axis.text.x = element_text(),
+        axis.text.y = element_text(),
+        legend.position = "none") +
+  scale_y_continuous() +
+  annotate(
+        "text",
+        x = .55, y = .5, label = "Movie",
+        color = "#fafafa", size = 7, vjust = 1, hjust = 0,
+        fontface = "bold"
+    ) +
+    annotate(
+        "text",
+        x = .53, y = .79, label = "TV Movie",
+        color = "#fafafa", size = 7, vjust = 1, hjust = 0,
+        fontface = "bold"
+    ) +
+    annotate(
+        "text",
+        x = .56, y = .95, label = "Video",
+        color = "#fafafa", size = 7, vjust = 1, hjust = 0,
+        fontface = "bold"
+    ) +
+  scale_fill_brewer(palette = "Dark2")
+p
+
+```
+
+
+```{r}
+library(tidymodels)
+monster_model <- monster_movies |> 
+  select(primary_title, runtime_minutes, year, average_rating, num_votes, Comedy:Music, Short:War)
+
+movie_rec <- recipe(average_rating ~ ., #. uses all variables - average_rating
+                    data = monster_model) |> 
+  update_role(primary_title, new_role = "ID")
+
+lm_model_lm <- linear_reg() |> 
+  set_engine("lm") |> 
+  set_mode(mode = "regression")
+
+lm_wflow_lm <- 
+  workflow() |> 
+  add_model(lm_model_lm) |> 
+  add_recipe(movie_rec)
+
+lm_wflow_lm |>
+  fit(data = monster_model) |> #creates linear model
+  predict(new_data = monster_model) |> #predicts data
+  cbind(monster_model) |> #combines new pred with df monster_model
+  ggplot(aes(x = average_rating, y =.pred)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1)
+
+
+lm_wflow_lm |>
+  fit(data = monster_model) |> #creates linear model
+  predict(new_data = monster_model) |> #predicts data
+  cbind(monster_model) |> #combines new pred with df monster_model
+  select(.pred, average_rating) |> 
+  cor(use = "pairwise.complete") #cor is 0.53
+
+```
+
+```{r}
+lm_model_cart <- decision_tree() |> 
+  set_engine("rpart") |> 
+  set_mode(mode = "regression")
+
+lm_wflow_cart <- 
+  workflow() |> 
+  add_model(lm_model_cart) |> 
+  add_recipe(movie_rec)
+
+lm_wflow_cart |>
+  fit(data = monster_model) |> #creates linear model
+  predict(new_data = monster_model) |> #predicts data
+  cbind(monster_model) |> #combines new pred with df monster_model
+  ggplot(aes(x = average_rating, y =.pred)) +
+  geom_point() +
+  geom_abline()
+
+lm_wflow_cart|>
+  fit(data = monster_model) |> #creates linear model
+  predict(new_data = monster_model) |> #predicts data
+  cbind(monster_model) |> #combines new pred with df monster_model
+  select(.pred, average_rating) |> 
+  cor(use = "pairwise.complete") #cor is 0.59
+```
+```{r}
+movies_tree <- lm_wflow_cart|>
+  fit(data = monster_model) |>
+  extract_fit_parsnip()
+
+rpart.plot(movies_tree$fit) #decision tree
+```
+**Chord Diagram**
+```{r}
+genre_columns <- colnames(monster_movies)[10:32]
+
+# Initialize an empty matrix for genre overlaps
+genre_matrix <- matrix(0, ncol = length(genre_columns), nrow = length(genre_columns),
+                       dimnames = list(genre_columns, genre_columns))
+
+# Fill in the overlap counts
+for (i in seq_along(genre_columns)) {
+  for (j in seq_along(genre_columns)) {
+    genre_matrix[i, j] <- sum(monster_movies[[genre_columns[i]]] & monster_movies[[genre_columns[j]]])
+  }
+}
+
+# View the genre overlap matrix
+genre_matrix
+```
+```{r}
+circos.clear()  # Clear any previous circlize settings
+circos.par(gap.after = c(rep(1, length(rownames(genre_matrix)))))
+
+# Create the chord diagram
+chordDiagram(
+  genre_matrix,
+  annotationTrack = "grid",
+  preAllocateTracks = list(track.height = 0.3)
+)
+
+# Adjust label positioning and add axes
+circos.trackPlotRegion(
+  track.index = 1, 
+  panel.fun = function(x, y) {
+    xlim = get.cell.meta.data("xlim")
+    ylim = get.cell.meta.data("ylim")
+    sector.name = get.cell.meta.data("sector.index")
+    circos.text(
+      CELL_META$xcenter, ylim[1] + cm_h(2), sector.name,
+      facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5)
+    )
+    circos.axis(
+      h = "bottom", labels.cex = 0.6, sector.index = sector.name
+    )
+  },
+  bg.border = NA)
+```
+
+
+

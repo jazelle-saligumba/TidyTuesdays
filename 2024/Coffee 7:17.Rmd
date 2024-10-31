@@ -1,0 +1,65 @@
+---
+title: "coffee tt 7/16"
+output: html_document
+date: "2024-07-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+coffee_survey <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-05-14/coffee_survey.csv')
+```
+
+```{r}
+View(coffee_survey)
+```
+
+```{r}
+drinkcts <- 
+coffee_survey |> 
+  count(favorite, name = "Frequency")
+
+drinkcts
+```
+```{r}
+brown_palette <- c(
+  "#8B4513", # SaddleBrown
+  "#A0522D", # Sienna
+  "#D2691E", # Chocolate
+  "#CD853F", # Peru
+  "#F4A460", # SandyBrown
+  "#DEB887", # BurlyWood
+  "#D2B48C", # Tan
+  "#BC8F8F", # RosyBrown
+  "#F5DEB3", # Wheat
+  "#FFE4C4", # Bisque
+  "#FFEBCD", # BlanchedAlmond
+  "#FFF8DC", # Cornsilk
+  "#EEDFCC"  # Almond
+)
+```
+
+```{r}
+fav <-
+drinkcts |> 
+ggplot(aes(x=favorite, y = Frequency, fill = favorite)) +
+  geom_bar(stat = 'identity') +
+  scale_fill_manual(values = brown_palette) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  theme(legend.position = "none") +
+  labs(title = "Frequency of Favorite Coffee Drinks", x = "", y = "Frequency")
+```
+
+```{r}
+fav
+```
+

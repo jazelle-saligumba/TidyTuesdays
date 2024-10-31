@@ -1,0 +1,99 @@
+---
+title: '8:03'
+output: html_document
+date: "2024-09-03"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+qname_levels_single_response_crosswalk <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-09-03/qname_levels_single_response_crosswalk.csv')
+stackoverflow_survey_questions <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-09-03/stackoverflow_survey_questions.csv')
+stackoverflow_survey_single_response <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-09-03/stackoverflow_survey_single_response.csv') |> 
+  mutate(ai_sent2 = case_when(
+    ai_sent == 1 ~ 'favorable',
+    ai_sent == 2 ~ 'indifferent',
+    ai_sent == 3 ~ 'unfavorable',
+    ai_sent == 4 ~ 'unsure',
+    ai_sent == 5 ~ 'very favorable',
+    ai_sent == 6 ~ 'very unfavorable'
+  )) |> 
+  mutate(ai_sent2 = factor(ai_sent2, levels = c(
+    "very unfavorable", "unfavorable", "unsure", "indifferent", "favorable", "very favorable"
+  )))
+
+```
+```{r}
+View(qname_levels_single_response_crosswalk)
+View(stackoverflow_survey_questions)
+View(stackoverflow_survey_single_response)
+```
+
+```{r}
+library(praise)
+library(tidyverse)
+```
+```{r}
+stackoverflow_survey_single_response |> 
+  ggplot(aes(x = years_code, y = years_code_pro)) + # x and y trickles down into other functions
+  geom_point() +
+  geom_smooth(method = "lm", color = 'blue')
+```
+
+
+
+```{r}
+stackoverflow_survey_single_response |> 
+  ggplot() +
+  geom_bar(aes(fill = as.factor(ai_sent2), x = years_code), position = 'fill') # aes puts columns in data set to put onto plot, if you want to use columns as a factor in plot (i.e. make color of each point = column1)
+```
+
+```{r}
+survey_country <- stackoverflow_survey_single_response |> 
+  mutate(ai_sent = case_when(
+    ai_sent == 1 ~ 4,
+    ai_sent == 2 ~ 3, 
+    ai_sent == 3 ~ 2,
+    ai_sent == 4 ~ NA,
+    ai_sent == 5 ~ 5,
+    ai_sent == 6 ~ 1
+  )) |> 
+  group_by(country) |> 
+  summarize(ave_sent = mean (ai_sent, na.rm = TRUE)) |> #average ai sentiment per country
+  rename(region = country) |> 
+  mutate(region = recode(region, "United States of America" = "USA", 
+                         "United Kingdom of Great Britain and Northern Ireland" = "UK",
+                         "Republic of Korea" = "South Korea",
+                         "Democratic People's Republic of Korea" = "North Korea",
+                         "Russian Federation" = "Russia",
+                         "Libyan Arab Jamahiriya" = "Libya",
+                         "United Republic of Tanzania" = "Tanzania",
+                         "Côte d'Ivoire" = "Ivory Coast",
+                         "Venezuela, Bolivarian Republic of..." = "Venezuela"
+                         ))
+              
+```
+
+
+```{r}
+View(survey_country)
+```
+
+
+```{r}
+world <= map_data("world")
+full_world <- left_join(world, survey_country, by = 'region')
+```
+```{r}
+full_world |> 
+  ggplot(aes(x = long, y = lat, group= group)) +
+  geom_polygon(aes(fill = ave_sent)) +
+  scale_fill_distiller(palette = "RdBu", direction = -1) + 
+  coord_fixed(1.3)
+```
+
+
