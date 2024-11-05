@@ -13,13 +13,6 @@ public_picks <- readr::read_csv('https://raw.githubusercontent.com/rfordatascien
 
 ```
 
-## R Markdown
-
-```{r}
-View(team_results)
-View(public_picks)
-```
-
 ## The Data
 
 ```{r}
@@ -38,15 +31,27 @@ seed_data <- team_results |>
     PAKE - PASE < 3 ~ "mid_over",
     TRUE ~ "way_over")
     ) |> 
-  mutate(expected_groups = factor(expected_groups, levels = c("way_under", "mid_under", "little_under", "under", "over", "little_over", "mid_over", "way_over")))
+  mutate(expected_groups = factor(expected_groups, levels = c("way_under", "mid_under", "little_under", "under", "over", "little_over", "mid_over", "way_over"))) 
 
 seed_data |> 
-  ggplot(aes(x = PAKE, y = PASE))+
-  geom_point(aes(color= expected_groups))+
-  geom_abline(slope=1, intercept =0) +
-  labs(x = "Komputer ranking", y= "Seed ranking")+
-  scale_color_manual(values = c("red", "orange", "yellow", "greenyellow", "green", "blue", "purple", "pink"))+
-  ggrepel::geom_label_repel(data = filter(seed_data, abs(PAKE-PASE) > 1.5), mapping = aes(label=TEAM)) #+ # labels of team on each point, changed data to be filtered, now only labels with the more extreme data 
+  ggplot(aes(x = PAKE, y = PASE)) +
+  geom_point(aes(color = expected_groups)) +
+  geom_abline(slope = 1, intercept = 0) +
+  labs(x = "Komputer ranking", y = "Seed ranking", color = "Expected") +
+  theme_tufte() +
+  scale_color_manual(
+    values = c("red", "orange", "yellow", "greenyellow", "green", "blue", "purple", "pink"),
+    labels = c("Way Under", "Mid Under", "Little Under", "Under", "Over", "Little Over", "Mid Over", "Way Over")
+  ) +
+  theme(
+    axis.line = element_line(color = "black"),
+    axis.text = element_text(color = "black"),
+    axis.ticks = element_line(color = "black"),
+    panel.grid.minor = element_line(color = "gray90"),
+    panel.border = element_rect(color = "black", fill = NA)
+  ) +
+  ggrepel::geom_label_repel(data = filter(seed_data, abs(PAKE - PASE) > 1.5), mapping = aes(label = TEAM))
+ # labels of team on each point, changed data to be filtered, now only labels with the more extreme data 
   #scale_color_gradient2(low = "blue", mid = "darkgray", high = "red") # color gradient before manually making case_when
 ```
 ## Spider Plots 
@@ -67,6 +72,7 @@ team_results |>
   filter(TEAM %in% c("Florida", "Houston", "Butler", "Florida Atlantic", "Saint Peter's", "Detroit", "Kansas")) |> 
 ggradar(values.radar = c("-2", "0", "2"), grid.min = -4, grid.mid = 0, grid.max = 4)
 ```
+
 ```{r}
 praise()
 ```
