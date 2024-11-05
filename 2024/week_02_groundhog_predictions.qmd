@@ -1,15 +1,18 @@
 ---
-title: "Untitled"
+title: "Groundhog Predictions"
 format: html
 ---
 
 ## Quarto
+```{r}
+library(tidyverse)
+library(ggthemes)
+```
 
 
 ```{r}
 groundhogs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-01-30/groundhogs.csv')
 predictions <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-01-30/predictions.csv')
-
 ```
 ```{r}
 predictions |>
@@ -54,7 +57,16 @@ states <- map_data("state")
 
 ggplot(states) +
   geom_polygon(fill= "white", colour = "black", aes(long, lat, group=group)) +
-  geom_point(data = location, aes(x = longitude, y = latitude, color = groundhog, size = num_pred))
+  geom_point(data = location, aes(x = longitude, y = latitude, color = groundhog, size = num_pred)) +
+  theme_tufte() +
+  labs(y = "", x = "", size = "Predictions", color = "Groundhog", title = "Groundhogs Across America") +
+  theme(
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text = element_blank(),
+    panel.grid = element_blank(),
+    panel.border = element_blank()) +
+  coord_fixed(ratio = 1.4) 
 ```
 
 
