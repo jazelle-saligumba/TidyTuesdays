@@ -32,22 +32,27 @@ leap_names <- births |>
 leap_names
 
 
-#leap_births <- babynames |> 
-  #filter(year > 1920) |> 
-  #filter(name %in% leap_names$Fname) |> 
-  #group_by(name, year) |> 
-  #mutate(diff = n - log(n), 
-  
-  
+leap_births <- babynames |> 
+  filter(year > 1920) |> 
+  filter(name %in% leap_names$Fname) |> 
+  group_by(name, year) |> 
+  mutate(diff = n - log(n))
+
+leap_births
 ```
 
 ```{r}
 leap_births |> 
-  ggplot(aes(x =year, y =n)) +
+  ggplot(aes(x = year, y = n)) +
   geom_line(aes(color = name, lty = sex)) +
-  geom_point(data = filter(births, Fname %in% leap_names%Fname),
-             aes(color = Fname, x = year_birth), y = 75000, size= 5)+
-  xlim()
-  
+  geom_point(data = filter(births, Fname %in% leap_names$Fname),
+             aes(color = Fname, x = year_birth), y = 75000, size = 5) +
+  xlim(1950, 2010) +
+  labs(x = "Year", y = "Count", title = "Name Popularity", color = "Name", lty = "Sex") +
+  theme_minimal() +
+  theme(
+    text = element_text(family = "Times New Roman"),
+    plot.title = element_text(face = "bold")
+  )
 ```
 
