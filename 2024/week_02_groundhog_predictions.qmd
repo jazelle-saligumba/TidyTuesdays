@@ -14,6 +14,7 @@ library(ggthemes)
 groundhogs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-01-30/groundhogs.csv')
 predictions <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-01-30/predictions.csv')
 ```
+
 ```{r}
 predictions |>
   filter(id<= 6) |>
@@ -68,6 +69,4 @@ ggplot(states) +
     panel.border = element_blank()) +
   coord_fixed(ratio = 1.4) 
 ```
-
-rah
 

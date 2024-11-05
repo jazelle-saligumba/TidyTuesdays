@@ -15,11 +15,13 @@ coffee_survey <- readr::read_csv('https://raw.githubusercontent.com/rfordatascie
 
 ```{r}
 drinkcts <- 
-coffee_survey |> 
-  count(favorite, name = "Frequency")
+  coffee_survey |> 
+  count(favorite, name = "Frequency") |> 
+  mutate(favorite = str_replace(favorite, "Blended drink \\(e.g. Frappuccino\\)", "Frappuccino"))
 
 drinkcts
 ```
+
 ```{r}
 brown_palette <- c(
   "#8B4513", # SaddleBrown
@@ -44,7 +46,7 @@ drinkcts |>
 ggplot(aes(x=favorite, y = Frequency, fill = favorite)) +
   geom_bar(stat = 'identity') +
   scale_fill_manual(values = brown_palette) +
-  theme_minimal() +
+  theme_tufte() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))+
   theme(legend.position = "none") +
   labs(title = "Frequency of Favorite Coffee Drinks", x = "", y = "Frequency")

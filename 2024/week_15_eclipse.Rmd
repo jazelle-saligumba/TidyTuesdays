@@ -6,12 +6,6 @@ output: pdf_document
 ---
 
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## R Markdown
-
 ```{r}
 #Read directly from GitHub
 
@@ -23,10 +17,6 @@ eclipse_partial_2024 <- readr::read_csv('https://raw.githubusercontent.com/rford
 ```
 
 ```{r}
-#View(eclipse_annular_2023)
-#View(eclipse_total_2024)
-#View(eclipse_partial_2023)
-#View(eclipse_partial_2024)
 library(tidyverse)
 ```
 
