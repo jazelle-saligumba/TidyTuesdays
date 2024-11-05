@@ -69,6 +69,5 @@ ggplot(states) +
   coord_fixed(ratio = 1.4) 
 ```
 
-
-```
+rah
 
