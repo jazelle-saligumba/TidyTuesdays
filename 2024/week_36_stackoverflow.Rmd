@@ -4,11 +4,13 @@ output: html_document
 date: "2024-09-03"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
+library(praise)
+library(tidyverse)
+library(extrafont)
+library(ggthemes)
 ```
 
-## R Markdown
 
 ```{r}
 qname_levels_single_response_crosswalk <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-09-03/qname_levels_single_response_crosswalk.csv')
@@ -27,29 +29,22 @@ stackoverflow_survey_single_response <- readr::read_csv('https://raw.githubuserc
   )))
 
 ```
-```{r}
-View(qname_levels_single_response_crosswalk)
-View(stackoverflow_survey_questions)
-View(stackoverflow_survey_single_response)
-```
 
-```{r}
-library(praise)
-library(tidyverse)
-```
 ```{r}
 stackoverflow_survey_single_response |> 
   ggplot(aes(x = years_code, y = years_code_pro)) + # x and y trickles down into other functions
   geom_point() +
-  geom_smooth(method = "lm", color = 'blue')
+  geom_smooth(method = "lm", color = 'blue') +
+  theme_tufte() +
+  labs(y = "", title = "Professional Coding vs. Coding Experience", x = "Years of Coding")
 ```
-
-
 
 ```{r}
 stackoverflow_survey_single_response |> 
   ggplot() +
-  geom_bar(aes(fill = as.factor(ai_sent2), x = years_code), position = 'fill') # aes puts columns in data set to put onto plot, if you want to use columns as a factor in plot (i.e. make color of each point = column1)
+  geom_bar(aes(fill = as.factor(ai_sent2), x = years_code), position = 'fill') + # aes puts columns in data set to put onto plot, if you want to use columns as a factor in plot (i.e. make color of each point = column1)
+  theme_tufte() +
+  labs(title = "AI Sentiment vs. Coding Experience", fill = "AI Sentiment", y = "", x = "Years of Coding")
 ```
 
 ```{r}
@@ -78,22 +73,25 @@ survey_country <- stackoverflow_survey_single_response |>
               
 ```
 
-
 ```{r}
-View(survey_country)
-```
-
-
-```{r}
-world <= map_data("world")
+world <- map_data("world")
 full_world <- left_join(world, survey_country, by = 'region')
 ```
+
 ```{r}
 full_world |> 
   ggplot(aes(x = long, y = lat, group= group)) +
   geom_polygon(aes(fill = ave_sent)) +
   scale_fill_distiller(palette = "RdBu", direction = -1) + 
-  coord_fixed(1.3)
+  coord_fixed(1.3) +
+  theme_minimal() +
+  labs(title = "AI Sentiment for Stack Overflow Users", fill = "Average Sentiment", y = "", x = "") +
+  theme(
+    text = element_text(family = "Times New Roman"),
+    axis.ticks = element_blank(),
+    axis.text = element_blank(),
+    panel.grid = element_blank()
+  )
 ```
 
 

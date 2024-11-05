@@ -1,14 +1,9 @@
 ---
-title: "coffee tt 7/16"
+title: "Coffee"
 output: html_document
 date: "2024-07-17"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## R Markdown
 ```{r}
 library(tidyverse)
 ```
@@ -16,10 +11,6 @@ library(tidyverse)
 
 ```{r}
 coffee_survey <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-05-14/coffee_survey.csv')
-```
-
-```{r}
-View(coffee_survey)
 ```
 
 ```{r}
