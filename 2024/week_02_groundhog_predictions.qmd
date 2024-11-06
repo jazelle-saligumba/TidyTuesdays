@@ -61,7 +61,6 @@ ggplot(states) +
   theme_tufte() +
   labs(y = "", x = "", size = "Predictions", color = "Groundhog", title = "Groundhogs Across America") +
   theme(
-    text = element_text(family = "Times New Roman"),
     axis.line = element_blank(),
     axis.ticks = element_blank(),
     axis.text = element_blank(),

@@ -31,7 +31,6 @@ leap_names <- births |>
 
 leap_names
 
-
 leap_births <- babynames |> 
   filter(year > 1920) |> 
   filter(name %in% leap_names$Fname) |> 

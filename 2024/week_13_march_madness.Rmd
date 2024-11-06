@@ -66,14 +66,4 @@ team_results |>
 
 # the visual 
 team_results |> 
-  mutate(F4PERCENT = parse_number(F4PERCENT)) |> 
-  select(TEAM, PAKE, PASE, GAMES, W, R64, F4PERCENT) |> 
-  mutate(across(PAKE:F4PERCENT, scale)) |> #z scores
-  filter(TEAM %in% c("Florida", "Houston", "Butler", "Florida Atlantic", "Saint Peter's", "Detroit", "Kansas")) |> 
-ggradar(values.radar = c("-2", "0", "2"), grid.min = -4, grid.mid = 0, grid.max = 4)
-```
-
-```{r}
-praise()
-```
-
+  muta
