@@ -1,0 +1,115 @@
+---
+title: "week_45_democracy"
+format: html
+editor: visual
+---
+## Loading packages
+```{r}
+library(tidyverse)
+library(ggthemes)
+```
+
+## Data and cleaning
+```{r}
+democracy_data <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-11-05/democracy_data.csv') |>
+  mutate(regime = case_when(
+    str_detect(regime_category, "(?i)colony") ~ "Colony",
+    regime_category == "Civilian dictatorship" ~ "Civilian dictatorship",
+    regime_category == "Parliamentary democracy" ~ "Parliamentary democracy",
+    regime_category == "Military dictatorship" ~ "Military dictatorship",
+    regime_category == "Presidential democracy" ~ "Presidential democracy",
+    regime_category == "Mixed democratic" ~ "Mixed democratic",
+    regime_category == "Royal dictatorship" ~ "Royal dictatorship",
+    regime_category == "Part of the USSR" ~ "Part of the USSR",
+    TRUE ~ "other"
+    )) |> 
+  mutate(country_name = case_when(
+    country_name == "United States" ~ "USA",
+    country_name == "United Kingdom" ~ "UK",
+    country_name == "Gambia, The" ~ "Gambia",
+    country_name == "Congo, Dem. Rep." ~ "Democratic Republic of the Congo",
+    country_name == "Republic of Korea" ~ "South Korea",
+    country_name == "Democratic People's Republic of Korea" ~ "North Korea",
+    TRUE ~ country_name
+  ))
+```
+
+```{r}
+democracy_data |> 
+  select(regime_category) |> 
+  group_by(regime_category) |> 
+  summarize(count = n()) |> 
+  arrange(desc(count))       
+```
+
+## Mapping the data
+```{r}
+world <- map_data("world")
+  
+map_data <- democracy_data |> 
+  right_join(world, by = c("country_name" = "region"))
+```
+```{r}
+map_data |> 
+  filter(year == 2020) |> 
+  ggplot() +
+  geom_polygon(aes(x = long, y = lat, group = group, fill = regime)) +
+  theme_tufte() +
+  coord_fixed(1.3) +
+  labs(fill = "Regime", y = "", x = "", title = "Governments of the World") +
+  scale_fill_manual(
+  values = c(
+    "Civilian dictatorship" = "#D73027",
+    "Parliamentary democracy" = "#4575B4",
+    "Military dictatorship" = "#FDAE61",
+    "Presidential democracy" = "#1A9850",
+    "Mixed democratic" = "#FFFFBF",
+    "Royal dictatorship" = "#E6AC53",
+    "Other" = "#A6761D"
+  )) +
+    theme(
+      axis.text = element_blank(),
+      axis.ticks = element_blank()
+    )
+```
+## Plotly
+# troubleshoot later
+
+```{r}
+library(plotly)
+p <- map_data |> 
+  ggplot(aes(frame = year)) +
+  geom_polygon(aes(x = long, y = lat, group = group, fill = regime)) +
+  theme_tufte() +
+  coord_fixed(1.3) +
+  labs(fill = "Regime", y = "", x = "", title = "Governments of the World") +
+  scale_fill_manual(
+    values = c(
+      "Civilian dictatorship" = "#D73027",
+      "Parliamentary democracy" = "#4575B4",
+      "Military dictatorship" = "#FDAE61",
+      "Presidential democracy" = "#1A9850",
+      "Mixed democratic" = "#FFFFBF",
+      "Royal dictatorship" = "#E6AC53",
+      "Other" = "#A6761D"
+    )
+  ) +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank()
+  )
+
+# Convert ggplot to plotly
+plotly_p <- ggplotly(p)
+
+# Set up animation options
+plotly_p <- plotly_p %>%
+  animation_opts(
+    frame = 500,
+    easing = "cubic-in-out",
+    redraw = FALSE,
+    mode = "immediate"
+  )
+
+plotly_p
+```
